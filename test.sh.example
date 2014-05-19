@@ -1,0 +1,7 @@
+#! /bin/bash
+
+TEST_PG_DATABSE=postgres_test \
+TEST_PG_USER=postgres \
+TEST_PG_PASSWORD="" \
+TEST_PG_HOST=localhost \
+TEST_PG_PORT=5432 nosetests
