@@ -49,14 +49,15 @@ class ApisTestCase(_base.TestCase):
         with self.app.app_context():
             models.Instance.create('databasenotexist')
         rv = self.client.post('/resources/databasenotexist', data={
-            'hostname': 'testapp.example.com'
+            'unit-host': '127.0.0.1',
+            'app-host': 'testapp.example.com'
         })
         self.assertEqual(rv.status_code, 201)
         self.assertEqual(json.loads(rv.data), {
             'PG_DATABASE': 'databasenotexist',
             'PG_HOST': 'db.example.com',
             'PG_PASSWORD': '12e7935efbd56116a0121c26582c00f108aeebd2',
-            'PG_PORT': 5432,
+            'PG_PORT': '5432',
             'PG_USER': 'databasenofdbf8d'
         })
 
@@ -64,13 +65,14 @@ class ApisTestCase(_base.TestCase):
         rv = self.client.post('/resources/databasenotexist')
         self.assertEqual(rv.status_code, 400)
         rv = self.client.post('/resources/databasenotexist', data={
-            'hostname': ''
+            'app-host': ''
         })
         self.assertEqual(rv.status_code, 400)
 
     def test_bind_app_404(self):
         rv = self.client.post('/resources/databasenotexist', data={
-            'hostname': 'testapp.example.com'
+            'unit-host': '127.0.0.1',
+            'app-host': 'testapp.example.com'
         })
         self.assertEqual(rv.status_code, 404)
 
@@ -81,7 +83,8 @@ class ApisTestCase(_base.TestCase):
         with db.transaction() as cursor:
             cursor.execute("UPDATE instance SET state='pending'")
         rv = self.client.post('/resources/databasenotexist', data={
-            'hostname': 'testapp.example.com'
+            'unit-host': '127.0.0.1',
+            'app-host': 'testapp.example.com'
         })
         self.assertEqual(rv.status_code, 412)
 
@@ -90,7 +93,8 @@ class ApisTestCase(_base.TestCase):
             ins = models.Instance.create('databasenotexist')
             ins.create_user('testapp.example.com')
         rv = self.client.post('/resources/databasenotexist', data={
-            'hostname': 'testapp.example.com'
+            'unit-host': '127.0.0.1',
+            'app-host': 'testapp.example.com'
         })
         self.assertEqual(rv.status_code, 500)
         self.assertEqual(rv.data.strip(),

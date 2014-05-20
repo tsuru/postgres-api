@@ -60,11 +60,11 @@ def bind_app(name):
     * 500: user creation process is failed
 
     """
-    if 'hostname' not in request.form:
-        return 'Parameter `hostname` is missing', 400
-    hostname = request.form['hostname']
+    if 'unit-host' not in request.form:
+        return 'Parameter `unit-host` is missing', 400
+    hostname = request.form['unit-host']
     if not hostname:
-        return 'Parameter `hostname` is empty', 400
+        return 'Parameter `unit-host` is empty', 400
     try:
         instance = Instance.retrieve(name)
     except InstanceNotFound:
@@ -74,7 +74,7 @@ def bind_app(name):
     username, password = instance.create_user(hostname)
     config = {
         'PG_HOST': instance.public_host,
-        'PG_PORT': instance.port,
+        'PG_PORT': str(instance.port),
         'PG_DATABASE': instance.name,
         'PG_USER': username,
         'PG_PASSWORD': password}

@@ -1,2 +1,4 @@
 Flask>=0.10.1
+Flask-Script>=2.0.5
 psycopg2>=2.5.2
+gunicorn>=18.0

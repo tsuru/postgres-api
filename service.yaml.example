@@ -1,0 +1,3 @@
+id: postgresapi
+endpoint:
+  production: postgresapi.example.com

@@ -52,4 +52,6 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-test.sh
+*.swp
+*.swo
+
