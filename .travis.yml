@@ -1,0 +1,10 @@
+language: python
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install `cat requirements.apt` -qqy
+  - psql -c "CREATE ROLE ptest WITH SUPERUSER LOGIN PASSWORD 'ptest'" -U postgres
+  - psql -c "CREATE DATABASE ptest WITH OWNER ptest" -U postgres
+script:
+  - TEST_PG_DATABASE=ptest TEST_PG_USER=ptest TEST_PG_PASSWORD=ptest nosetests
+addons:
+    postgresql: "9.1"

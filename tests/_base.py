@@ -82,6 +82,6 @@ class TestCase(unittest.TestCase):
         db = self.create_db()
         with db.autocommit() as cursor:
             try:
-                cursor.execute('DROP USER databasenofdbf8d')
+                cursor.execute('DROP USER databaseno90ae84')
             except:
                 pass

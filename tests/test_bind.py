@@ -22,19 +22,19 @@ class BindTestCase(_base.TestCase):
         with self.app.app_context():
             models.Instance.create('databasenotexist')
             instance = models.Instance.retrieve('databasenotexist')
-            user, password = instance.create_user('testapp.example.com')
-            self.assertEqual(user, 'databasenofdbf8d')
+            user, password = instance.create_user('127.0.0.1')
+            self.assertEqual(user, 'databaseno90ae84')
             self.assertEqual(password,
-                             '12e7935efbd56116a0121c26582c00f108aeebd2')
+                             '59e325e93f6a8aa81e6bfb270c819ccfaaf1e30a')
 
     def test_already_exists(self):
         db = self.create_db()
         with db.autocommit() as cursor:
-            cursor.execute('CREATE ROLE databasenofdbf8d')
+            cursor.execute('CREATE ROLE databaseno90ae84')
         with self.app.app_context():
             models.Instance.create('databasenotexist')
             instance = models.Instance.retrieve('databasenotexist')
             self.assertRaises(
                 psycopg2.ProgrammingError,
                 instance.create_user,
-                'testapp.example.com')
+                '127.0.0.1')

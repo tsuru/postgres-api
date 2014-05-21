@@ -56,16 +56,16 @@ class ApisTestCase(_base.TestCase):
         self.assertEqual(json.loads(rv.data), {
             'PG_DATABASE': 'databasenotexist',
             'PG_HOST': 'db.example.com',
-            'PG_PASSWORD': '12e7935efbd56116a0121c26582c00f108aeebd2',
+            'PG_PASSWORD': '59e325e93f6a8aa81e6bfb270c819ccfaaf1e30a',
             'PG_PORT': '5432',
-            'PG_USER': 'databasenofdbf8d'
+            'PG_USER': 'databaseno90ae84'
         })
 
     def test_bind_app_400(self):
         rv = self.client.post('/resources/databasenotexist')
         self.assertEqual(rv.status_code, 400)
         rv = self.client.post('/resources/databasenotexist', data={
-            'app-host': ''
+            'unit-host': ''
         })
         self.assertEqual(rv.status_code, 400)
 
@@ -91,26 +91,26 @@ class ApisTestCase(_base.TestCase):
     def test_bind_app_500(self):
         with self.app.app_context():
             ins = models.Instance.create('databasenotexist')
-            ins.create_user('testapp.example.com')
+            ins.create_user('127.0.0.1')
         rv = self.client.post('/resources/databasenotexist', data={
             'unit-host': '127.0.0.1',
             'app-host': 'testapp.example.com'
         })
         self.assertEqual(rv.status_code, 500)
         self.assertEqual(rv.data.strip(),
-                         'role "databasenofdbf8d" already exists')
+                         'role "databaseno90ae84" already exists')
 
     def test_unbind_app_200(self):
         with self.app.app_context():
             ins = models.Instance.create('databasenotexist')
-            ins.create_user('testapp.example.com')
+            ins.create_user('127.0.0.1')
         rv = self.client.delete('/resources/databasenotexist'
-                                '/hostname/testapp.example.com')
+                                '/hostname/127.0.0.1')
         self.assertEqual(rv.status_code, 200)
 
     def test_unbind_app_404(self):
         rv = self.client.delete('/resources/databasenotexist'
-                                '/hostname/testapp.example.com')
+                                '/hostname/127.0.0.1')
         self.assertEqual(rv.status_code, 404)
 
     def test_unbind_app_500(self):
@@ -119,14 +119,14 @@ class ApisTestCase(_base.TestCase):
         # the database exists but not the role
         # tsuru's api flow set this to 500 but not 404
         rv = self.client.delete('/resources/databasenotexist'
-                                '/hostname/testapp.example.com')
+                                '/hostname/127.0.0.1')
         self.assertEqual(rv.status_code, 500)
 
         db = self.create_db()
         with db.transaction() as cursor:
             cursor.execute("UPDATE instance SET state='pending'")
         rv = self.client.delete('/resources/databasenotexist'
-                                '/hostname/testapp.example.com')
+                                '/hostname/127.0.0.1')
         self.assertEqual(rv.status_code, 500)
 
     def test_destroy_200(self):
@@ -148,12 +148,12 @@ class ApisTestCase(_base.TestCase):
         rv = self.client.get('/resources/databasenotexist/status')
         self.assertEqual(rv.status_code, 204)
 
-        password = self.app.config['SHARED_ADMIN_PASSWORD']
-        self.app.config['SHARED_ADMIN_PASSWORD'] = password * 2
+        admin = self.app.config['SHARED_ADMIN']
+        self.app.config['SHARED_ADMIN'] = admin * 2
         rv = self.client.get('/resources/databasenotexist/status')
         self.assertEqual(rv.status_code, 500)
 
-        self.app.config['SHARED_ADMIN_PASSWORD'] = password
+        self.app.config['SHARED_ADMIN'] = admin
         db = self.create_db()
         with db.transaction() as cursor:
             cursor.execute("UPDATE instance SET state='pending'")

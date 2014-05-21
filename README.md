@@ -3,6 +3,8 @@ tsuru-postgresapi
 
 A PostgreSQL API for tsuru PaaS
 
+[![Build Status](https://travis-ci.org/guokr/tsuru-postgresapi.svg?branch=master)](https://travis-ci.org/guokr/tsuru-postgresapi)
+
 
 Installation
 ------------
@@ -43,7 +45,7 @@ $ sudo -u postgres createuser postgresadmin -P
 
 #### Access control
 
-You may have to edit server's `pg\_hba.conf` and `postgresql.conf` to allow accessing from external IPs. See PostgreSQL's document for more.
+You may have to edit server's `pg_hba.conf` and `postgresql.conf` to allow accessing from external IPs. See PostgreSQL's document for more.
 
 ```bash
 # change "9.3" to the version of your current PostgreSQL cluster
@@ -52,7 +54,7 @@ You may have to edit server's `pg\_hba.conf` and `postgresql.conf` to allow acce
 # host    all    all    10.0.2.0/24    md5
 $ sudo editor /etc/postgresql/9.3/main/pg_hba.conf
 
-# change "listen\_addresses" to "0.0.0.0" to listen on all interfaces
+# change "listen_addresses" to "0.0.0.0" to listen on all interfaces
 $ sudo editor /etc/postgresql/9.3/main/postgresql.conf
 
 $ sudo service postgresql restart

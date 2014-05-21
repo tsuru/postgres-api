@@ -21,10 +21,10 @@ class UnbindTestCase(_base.TestCase):
     def test_success(self):
         db = self.create_db()
         with db.autocommit() as cursor:
-            cursor.execute('CREATE ROLE databasenofdbf8d')
+            cursor.execute('CREATE ROLE databaseno90ae84')
         with self.app.app_context():
             instance = models.Instance.create('databasenotexist')
-            instance.drop_user('testapp.example.com')
+            instance.drop_user('127.0.0.1')
 
     def test_not_found(self):
         with self.app.app_context():
@@ -32,4 +32,4 @@ class UnbindTestCase(_base.TestCase):
             self.assertRaises(
                 psycopg2.ProgrammingError,
                 instance.drop_user,
-                'testapp.example.com')
+                '127.0.0.1')
