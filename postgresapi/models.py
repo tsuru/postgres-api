@@ -94,7 +94,8 @@ class ClusterManager(object):
     def create_database(self, name, encoding=None):
         with self.db().autocommit() as cursor:
             grpsql = 'CREATE ROLE %(group)s WITH NOLOGIN'
-            dbsql = 'CREATE DATABASE %(name)s WITH OWNER %(group)s'
+            dbsql = 'CREATE DATABASE %(name)s'
+            ownsql = 'ALTER DATABASE %(name)s OWNER TO %(group)s'
             if encoding is not None:
                 dbsql += ' ENCODING %(encoding)s'
             group = generate_group(name)
@@ -103,6 +104,7 @@ class ClusterManager(object):
                        'encoding': encoding}
             cursor.execute(grpsql % context)
             cursor.execute(dbsql % context)
+            cursor.execute(ownsql % context)
 
     def drop_database(self, name):
         with self.db().autocommit() as cursor:
