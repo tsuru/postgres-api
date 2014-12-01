@@ -11,7 +11,6 @@ app = Flask('postgresapi')
 app.config.from_pyfile('application.cfg')
 AppDatabase(app)
 
-
 @app.errorhandler(500)
 def internal_server_error(e):
     if e.args:
@@ -58,11 +57,9 @@ def create_instance():
 
     return '', 201
 
-
-@app.route("/resources/<name>", methods=["POST"])
-@app.route("/resources/<name>/bind", methods=["POST"])
+@app.route("/resources/<name>/bind-app", methods=["POST"])
 def bind_app(name):
-    """Bind an app user to the database
+    """Bind an app to the database
 
     $ tsuru bind postgres_instance --app my_app
 
@@ -84,12 +81,12 @@ def bind_app(name):
     """
     name = canonicalize_db_name(name)
 
-    if 'unit-host' not in request.form:
-        return 'Parameter `unit-host` is missing', 400
+    if 'app-host' not in request.form:
+        return 'Parameter `app-host` is missing', 400
 
-    hostname = request.form['unit-host']
+    hostname = request.form['app-host']
     if not hostname:
-        return 'Parameter `unit-host` is empty', 400
+        return 'Parameter `app-host` is empty', 400
 
     try:
         storage = InstanceStorage()
@@ -101,17 +98,47 @@ def bind_app(name):
         return 'Can\'t bind to this instance because it\'s not running', 412
 
     username, password = instance.create_user(hostname)
-
-    return jsonify({
-        'PG_HOST': instance.public_host,
-        'PG_PORT': str(instance.port),
+    config = {
+        'PG_HOST': instance.get_public_host(),
+        'PG_PORT': str(instance.get_port()),
         'PG_DATABASE': instance.name,
         'PG_USER': username,
         'PG_PASSWORD': password
-    }), 201
+    }
 
-@app.route("/resources/<name>/hostname/<hostname>", methods=["DELETE"])
-def unbind_app(name, hostname):
+    if instance.plan == 'dedicated':
+        config['PG_ADMIN_USER'] = instance.username
+        config['PG_ADMIN_PASSWORD'] = instance.password
+
+    return jsonify(config), 201
+
+
+@app.route("/resources/<name>/bind", methods=["POST"])
+def bind_unit(name):
+    """Bind an app unit to the database
+
+    """
+    storage = InstanceStorage()
+    if storage.instance_exists(name):
+        return jsonify({}), 201
+    else:
+        return 'Instance `%s` is not found' % name, 404
+
+
+@app.route("/resources/<name>/bind", methods=["DELETE"])
+def unbind_unit(name):
+    """Unbind an app unit to the database
+
+    """
+    storage = InstanceStorage()
+    if storage.instance_exists(name):
+        return jsonify({}), 200
+    else:
+        return 'Instance `%s` is not found' % name, 404
+
+
+@app.route("/resources/<name>/bind-app", methods=["DELETE"])
+def unbind_app(name):
     """Unbind an app user from the database
 
     $ tsuru unbind postgres_instance --app my_app
@@ -125,6 +152,13 @@ def unbind_app(name, hostname):
     """
     name = canonicalize_db_name(name)
 
+    if 'app-host' not in request.form:
+        return 'Parameter `app-host` is missing', 400
+
+    hostname = request.form['app-host']
+    if not hostname:
+        return 'Parameter `app-host` is empty', 400
+
     try:
         storage = InstanceStorage()
         instance = storage.instance_by_name(name)
@@ -132,7 +166,7 @@ def unbind_app(name, hostname):
         return 'Instance `%s` is not found' % name, 404
 
     if instance.state != 'running':
-        return 'Can\'t unbind from this instance because it\'s not running', 500
+        return 'Can\'t unbind to this instance because it\'s not running', 500
 
     instance.drop_user(hostname)
     return '', 200

@@ -38,7 +38,6 @@ def _execute_sqls(basedir, sqls, start_function, stop_function):
             continue
         with open(fname) as fp, \
                 app.db.autocommit() as cursor:
-            print('Running %s ...' % sql)
             cursor.execute(fp.read())
         if stop_function(int(ver)):
             break

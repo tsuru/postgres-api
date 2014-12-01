@@ -19,7 +19,9 @@ $ sudo apt-get install postgresql
 
 #### Create database for postgresapi
 
-After install PostgreSQL, you need to create a user and a database for `postgresapi`. Here is an example:
+After install PostgreSQL, you need to create a user and a database for `postgresapi`, that is needed to store informations about created instances.
+
+Here is an example:
 
 ```bash
 $ sudo -u postgres createuser postgresapi -P
@@ -125,6 +127,22 @@ $ crane list
 # OR
 $ tsuru service-list
 ```
+
+### Dedicated instances
+
+This API provide dedicated instances if needed: a new dedicated Docker container is created with a running PostgreSQL database.
+To enable this feature, you need to set the `DOCKER_HOST` environment variable with the address of docker server on which to start instances.
+
+```
+tsuru env-set -a postgresapi DOCKER_HOST="tcp://tsuru.cluster.example.com:4243"
+```
+
+Set the Docker image to user:
+```
+tsuru env-set -a postgresapi DEDICATED_IMAGE_NAME="sroze/tsuru-postgresql"
+```
+
+**Note:** hosts will be used in a random way to create instances on.
 
 
 Usage

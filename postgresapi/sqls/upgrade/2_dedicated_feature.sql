@@ -16,4 +16,6 @@ ALTER TABLE instance
     ADD COLUMN plan plan_enum NOT NULL DEFAULT 'shared',
     ADD COLUMN container_id varchar(255) NULL,
     ADD COLUMN host varchar(255) NULL,
-    ADD COLUMN port integer NULL;
+    ADD COLUMN port integer NULL,
+    ADD COLUMN admin_user varchar(255) NULL,
+    ADD COLUMN admin_password varchar(255) NULL;

@@ -17,15 +17,37 @@ class InstanceStorage(object):
 
     def instance_by_name(self, name):
         with app.db.transaction() as cursor:
-            cursor.execute('SELECT name, plan, state FROM %s WHERE name=%%s' % self.table_name, (name, ))
+            cursor.execute('SELECT name, plan, state, host, port, container_id, admin_user, admin_password'
+                           ' FROM %s WHERE name=%%s' % self.table_name, (name, ))
 
             try:
-                name, plan, state = cursor.fetchone()
+                return self.instance_from_row(cursor.fetchone())
 
             except TypeError:
                 raise InstanceNotFound(name=name)
 
-            return Instance(name, plan, state)
+    def find_instances_by_host(self, host):
+        with app.db.transaction() as cursor:
+            cursor.execute('SELECT name, plan, state, host, port, container_id, admin_user, admin_password '
+                           'FROM %s WHERE host=%%s' % self.table_name, (host, ))
+
+            instances = []
+            for record in cursor:
+                instances.append(self.instance_from_row(record))
+
+            return instances
+
+    def instance_from_row(self, row):
+        return Instance(
+            name=row[0],
+            plan=row[1],
+            state=row[2],
+            host=row[3],
+            port=row[4],
+            container_id=row[5],
+            username=row[6],
+            password=row[7]
+        )
 
     def instance_exists(self, name):
         with app.db.transaction() as cursor:
@@ -34,10 +56,20 @@ class InstanceStorage(object):
 
     def store(self, instance):
         with app.db.transaction() as cursor:
-            cursor.execute(
-                'INSERT INTO %s (name, plan, state) VALUES (%%s, %%s, %%s)' % self.table_name,
-                (instance.name, instance.plan, instance.state)
-            )
+            if self.instance_exists(instance.name):
+                cursor.execute(
+                    'UPDATE %s SET plan = %%s, state = %%s, host = %%s, port = %%s, container_id = %%s,'
+                    ' admin_user = %%s, admin_password = %%s WHERE name = %%s' % self.table_name,
+                    (instance.plan, instance.state, instance.host, instance.port, instance.container_id,
+                     instance.username, instance.password, instance.name)
+                )
+            else:
+                cursor.execute(
+                    'INSERT INTO %s (name, plan, state, host, port, container_id, admin_user, admin_password) '
+                    'VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s)' % self.table_name,
+                    (instance.name, instance.plan, instance.state, instance.host, instance.port, instance.container_id,
+                     instance.username, instance.password)
+                )
 
     def delete_by_name(self, name):
         with app.db.transaction() as cursor:

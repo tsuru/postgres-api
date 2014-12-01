@@ -64,9 +64,10 @@ class Database(object):
                 cursor.execute('SELECT 1')
                 result = cursor.fetchone()
                 return result == (1,)
+
         except _interrupt:
             raise
-        except:
+        except Exception as e:
             return False
 
     def export(self):
