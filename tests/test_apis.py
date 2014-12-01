@@ -5,7 +5,7 @@ try:
 except ImportError:
     import json
 
-from postgresapi import models
+from postgresapi import models, managers
 from . import _base
 
 
@@ -38,7 +38,9 @@ class ApisTestCase(_base.TestCase):
 
     def test_create_500(self):
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
         rv = self.client.post('/resources', data={
             'name': 'databasenotexist'
         })
@@ -47,7 +49,9 @@ class ApisTestCase(_base.TestCase):
 
     def test_bind_app_201(self):
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
         rv = self.client.post('/resources/databasenotexist', data={
             'unit-host': '127.0.0.1',
             'app-host': 'testapp.example.com'
@@ -78,7 +82,9 @@ class ApisTestCase(_base.TestCase):
 
     def test_bind_app_412(self):
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
         db = self.create_db()
         with db.transaction() as cursor:
             cursor.execute("UPDATE instance SET state='pending'")
@@ -90,7 +96,8 @@ class ApisTestCase(_base.TestCase):
 
     def test_bind_app_500(self):
         with self.app.app_context():
-            ins = models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            ins = manager.create_instance('databasenotexist')
             ins.create_user('127.0.0.1')
         rv = self.client.post('/resources/databasenotexist', data={
             'unit-host': '127.0.0.1',
@@ -102,7 +109,9 @@ class ApisTestCase(_base.TestCase):
 
     def test_unbind_app_200(self):
         with self.app.app_context():
-            ins = models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            ins = manager.create_instance('databasenotexist')
+
             ins.create_user('127.0.0.1')
         rv = self.client.delete('/resources/databasenotexist'
                                 '/hostname/127.0.0.1')
@@ -115,7 +124,9 @@ class ApisTestCase(_base.TestCase):
 
     def test_unbind_app_500(self):
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
         # the database exists but not the role
         # tsuru's api flow set this to 500 but not 404
         rv = self.client.delete('/resources/databasenotexist'
@@ -131,7 +142,9 @@ class ApisTestCase(_base.TestCase):
 
     def test_destroy_200(self):
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
         rv = self.client.delete('/resources/databasenotexist')
         self.assertEqual(rv.status_code, 200)
 
@@ -144,7 +157,9 @@ class ApisTestCase(_base.TestCase):
         self.assertEqual(rv.status_code, 404)
 
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
         rv = self.client.get('/resources/databasenotexist/status')
         self.assertEqual(rv.status_code, 204)
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from postgresapi import models
+from postgresapi import models, managers, storage
 from . import _base
 
 
@@ -16,16 +16,19 @@ class DeleteTestCase(_base.TestCase):
 
     def test_success(self):
         db = self.create_db()
+
         with db.transaction() as cursor:
             cursor.execute(
-                "INSERT INTO instance (name, state, shared) VALUES "
-                "('databasenotexist', 'running', true)")
+                "INSERT INTO instance (name, state, plan) VALUES "
+                "('databasenotexist', 'running', 'shared')")
         with db.autocommit() as cursor:
             cursor.execute('CREATE ROLE databaseno_group')
             cursor.execute('CREATE DATABASE databasenotexist '
                            'OWNER databaseno_group')
         with self.app.app_context():
-            models.Instance.delete('databasenotexist')
+            manager = managers.SharedManager()
+            manager.delete_instance(models.Instance(name='databasenotexist', plan='shared'))
+
         db = self.create_db()
         with db.transaction() as cursor:
             cursor.execute('SELECT * FROM instance')
@@ -33,6 +36,7 @@ class DeleteTestCase(_base.TestCase):
 
     def test_not_exist(self):
         with self.app.app_context():
-            self.assertRaises(models.InstanceNotFound,
-                              models.Instance.delete,
-                              'databasenotexist')
+            manager = managers.SharedManager()
+            self.assertRaises(storage.InstanceNotFound,
+                              manager.delete_instance,
+                              models.Instance(name='databasenotexist', plan='shared'))

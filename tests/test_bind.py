@@ -2,7 +2,7 @@
 
 import psycopg2
 
-from postgresapi import models
+from postgresapi import models, managers, storage
 from . import _base
 
 
@@ -20,8 +20,12 @@ class BindTestCase(_base.TestCase):
 
     def test_success(self):
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
-            instance = models.Instance.retrieve('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
+            s = storage.InstanceStorage()
+            instance = s.instance_by_name('databasenotexist')
+
             user, password = instance.create_user('127.0.0.1')
             self.assertEqual(user, 'databaseno90ae84')
             self.assertEqual(password,
@@ -32,8 +36,12 @@ class BindTestCase(_base.TestCase):
         with db.autocommit() as cursor:
             cursor.execute('CREATE ROLE databaseno90ae84')
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
-            instance = models.Instance.retrieve('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
+            s = storage.InstanceStorage()
+            instance = s.instance_by_name('databasenotexist')
+
             self.assertRaises(
                 psycopg2.ProgrammingError,
                 instance.create_user,

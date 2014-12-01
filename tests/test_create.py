@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from postgresapi import models
+from postgresapi import models, managers
 from . import _base
 
 
@@ -16,22 +16,26 @@ class CreateTestCase(_base.TestCase):
 
     def test_success(self):
         with self.app.app_context():
-            models.Instance.create('databasenotexist')
+            manager = managers.SharedManager()
+            manager.create_instance('databasenotexist')
+
         db = self.create_db()
         with db.transaction() as cursor:
-            cursor.execute('SELECT * FROM instance')
+            cursor.execute('SELECT name, state, plan FROM instance')
             self.assertEqual(cursor.fetchall(),
-                             [('databasenotexist', 'running', True)])
+                             [('databasenotexist', 'running', 'shared')])
 
     def test_already_exists(self):
         db = self.create_db()
+        manager = managers.SharedManager()
+
         with db.transaction() as cursor:
             cursor.execute(
-                "INSERT INTO instance (name, state, shared) VALUES "
-                "('databasenotexist', 'running', true)")
+                "INSERT INTO instance (name, state, plan) VALUES "
+                "('databasenotexist', 'running', 'shared')")
         with self.app.app_context():
-            self.assertRaises(models.InstanceAlreadyExists,
-                              models.Instance.create,
+            self.assertRaises(managers.InstanceAlreadyExists,
+                              manager.create_instance,
                               'databasenotexist')
 
         with db.autocommit() as cursor:
@@ -39,6 +43,6 @@ class CreateTestCase(_base.TestCase):
             cursor.execute('CREATE DATABASE databasenotexist '
                            'OWNER databaseno_group')
         with self.app.app_context():
-            self.assertRaises(models.InstanceAlreadyExists,
-                              models.Instance.create,
+            self.assertRaises(managers.InstanceAlreadyExists,
+                              manager.create_instance,
                               'databasenotexist')
