@@ -67,7 +67,7 @@ $ sudo service postgresql restart
 Now you can install `postgresapi` service. In your tsuru client machine (with crane installed):
 
 ```bash
-$ git clone https://github.com/guokr/tsuru-postgresapi
+$ git clone https://github.com/tsuru/postgres-api
 $ tsuru app-create postgresapi python
 ```
 
@@ -154,6 +154,4 @@ Please see [tsuru's document](http://docs.tsuru.io/en/latest/services/api.html).
 TODO
 ----
 
-1. Provision mode
-2. EC2 supporting
-3. Handle database connection timeout
+- [ ] EC2 supporting
