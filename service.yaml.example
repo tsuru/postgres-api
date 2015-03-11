@@ -1,3 +1,4 @@
 id: postgresapi
+password: postgresapi
 endpoint:
   production: postgresapi.example.com
