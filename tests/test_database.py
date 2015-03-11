@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import psycopg2
+from postgresapi import plans
+from postgresapi.models import canonicalize_db_name, Instance
 
 from . import _base
 
@@ -81,3 +83,63 @@ class DatabaseTestCase(_base.TestCase):
             self.assertEqual(
                 cursor1.fetchall(),
                 [(1,), (2,), (3,), (4,), (5,)])
+
+    def test_instance(self):
+        with self.app.app_context():
+            db_name = canonicalize_db_name('testing')
+            manager = plans.get_manager_by_plan('shared')
+
+            con = self.create_conn()
+            con.set_isolation_level(0)
+            cursor = con.cursor()
+            try:
+                cursor.execute('DROP DATABASE testing')
+                cursor.execute('DROP ROLE testing')
+                con.commit()
+            except:
+                pass
+            finally:
+                cursor.close()
+                con.close()
+
+            instance = manager.create_instance(db_name)
+            self.database = db_name
+
+            try:
+                self.user, self.password = instance.create_user('first')
+
+                first_con = self.create_conn()
+                cursor = first_con.cursor()
+
+                try:
+                    cursor.execute('CREATE TABLE test(name text)')
+                    first_con.commit()
+                    cursor.execute('INSERT INTO test VALUES (\'test\')')
+                    first_con.commit()
+
+                    self.user, self.password = instance.create_user('second')
+                    second_con = self.create_conn()
+                    second_cursor = second_con.cursor()
+
+                    try:
+                        second_cursor.execute('SELECT name FROM test')
+                        second_cursor.fetchall()
+                    except:
+                        second_con.rollback()
+                        raise
+                    finally:
+                        second_cursor.close()
+                        second_con.close()
+                except:
+                    first_con.rollback()
+                    raise
+                finally:
+                    cursor.execute('DROP TABLE test')
+                    first_con.commit()
+                    cursor.close()
+                    first_con.close()
+            except:
+                raise
+            finally:
+                instance.drop_user('first')
+                instance.drop_user('second')
