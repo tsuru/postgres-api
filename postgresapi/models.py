@@ -107,13 +107,28 @@ class ClusterManager(object):
             username = generate_user(database, host)
             password = generate_password(database, host)
             group = generate_group(database)
+
+            # Create the user
             sql = "CREATE ROLE %s WITH LOGIN PASSWORD %%s IN ROLE %s"
             cursor.execute(sql % (username, group), (password, ))
+
+            # Alter default privileges will grant objects on group
+            sql = "ALTER DEFAULT PRIVILEGES FOR ROLE %s GRANT ALL PRIVILEGES ON %s TO %s"
+            for object in ['TABLES', 'SEQUENCES', 'FUNCTIONS']:
+                cursor.execute(sql % (username, object, group))
+
             return username, password
 
     def drop_user(self, database, host):
         with self.db(database).autocommit() as cursor:
             username = generate_user(database, host)
+            group = generate_group(database)
+
+            # Remove default privileges of role
+            sql = "ALTER DEFAULT PRIVILEGES FOR ROLE %s REVOKE ALL PRIVILEGES ON %s FROM %s"
+            for object in ['TABLES', 'SEQUENCES', 'FUNCTIONS']:
+                cursor.execute(sql % (username, object, group))
+
             cursor.execute("DROP ROLE %s" % username)
 
     def is_up(self, database):
