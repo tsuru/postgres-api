@@ -11,7 +11,7 @@ plans = [
 
 class PlanDoNotExists(Exception):
     def __init__(self, name):
-        self.args = ["Plan %s do not exists." % name]
+        self.args = ["Plan %s does not exist." % name]
 
 def list_active():
     plans_environ = os.environ.get("POSTGRES_API_PLANS", "[]")
