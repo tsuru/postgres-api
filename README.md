@@ -100,7 +100,7 @@ Configuration are finished now. Deploy the service.
 
 ```bash
 # Find out git repository then deploy the service
-$ cd tsuru-postgresapi
+$ cd postgres-api
 $ tsuru app-info -a postgresapi | grep Repository
 $ git remote add tsuru git@tsuru.example.com:postgresapi.git
 $ git push tsuru master
