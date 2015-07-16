@@ -19,19 +19,21 @@ class Database(object):
         self.port = port
         self.password = password
         self.database = database
+        self.conn = None
 
-    @locked_cached_property
     def connection(self):
-        return psycopg2.connect(database=self.database,
-                                user=self.user,
-                                password=self.password,
-                                host=self.host,
-                                port=self.port)
+        if not self.conn or self.conn.closed:
+            self.conn = psycopg2.connect(database=self.database,
+                                    user=self.user,
+                                    password=self.password,
+                                    host=self.host,
+                                    port=self.port)
+        return self.conn
 
     @contextmanager
     def transaction(self):
         """Open a "read committed" transaction for SQLs execution"""
-        conn = self.connection
+        conn = self.connection()
         orig_level = conn.isolation_level
         conn.set_isolation_level(ISOLATION_LEVEL_READ_COMMITTED)
         cursor = conn.cursor()
@@ -48,7 +50,7 @@ class Database(object):
     @contextmanager
     def autocommit(self):
         """Execute SQLs in a non-transaction (auto-commit)"""
-        conn = self.connection
+        conn = self.connection()
         orig_level = conn.isolation_level
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
@@ -83,12 +85,14 @@ class AppDatabase(Database):
     def __init__(self, app=None):
         app.db = self
         self.app = app
+        self.conn = None
 
-    @locked_cached_property
     def connection(self):
-        return psycopg2.connect(
-            database=self.app.config['POSTGRESQL_DATABASE'],
-            user=self.app.config['POSTGRESQL_USER'],
-            password=self.app.config['POSTGRESQL_PASSWORD'],
-            host=self.app.config['POSTGRESQL_HOST'],
-            port=self.app.config['POSTGRESQL_PORT'])
+        if not self.conn or self.conn.closed:
+            self.conn = psycopg2.connect(
+                database=self.app.config['POSTGRESQL_DATABASE'],
+                user=self.app.config['POSTGRESQL_USER'],
+                password=self.app.config['POSTGRESQL_PASSWORD'],
+                host=self.app.config['POSTGRESQL_HOST'],
+                port=self.app.config['POSTGRESQL_PORT'])
+        return self.conn

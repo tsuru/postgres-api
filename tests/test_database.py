@@ -25,6 +25,42 @@ class DatabaseTestCase(_base.TestCase):
         db1 = self.create_db('databasenotexist')
         self.assertFalse(db1.ping())
 
+    def test_disconnected(self):
+        db_name = 'testing'
+
+        conn = self.create_conn()
+        conn.set_isolation_level(0)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT pg_terminate_backend(pid) " +
+            "FROM pg_stat_activity " +
+            "WHERE usename=%(user)s" +
+            "AND pid <> pg_backend_pid()",
+            {'user': self.user})
+
+        try:
+            cursor.execute('DROP DATABASE %s' % db_name)
+            cursor.execute('DROP ROLE %s' % db_name)
+            conn.commit()
+        except:
+            pass
+
+        cursor.close()
+        conn.close()
+
+        with self.app.app_context():
+            cdb_name = canonicalize_db_name(db_name)
+            manager = plans.get_manager_by_plan('shared')
+
+            try:
+                manager.create_instance(cdb_name)
+                assert False
+            except psycopg2.OperationalError:
+                assert True
+
+            instance = manager.create_instance(cdb_name)
+            manager.delete_instance(instance)
+
     def test_autocommit(self):
         conn = self.create_conn()
         conn.set_isolation_level(0)
@@ -74,7 +110,7 @@ class DatabaseTestCase(_base.TestCase):
                 cursor1.fetchall(),
                 [(1,), (2,), (3,), (4,), (5,)])
             # use rollback to unlock table test
-            db1.connection.rollback()
+            db1.connection().rollback()
             cursor0.execute('DROP TABLE test')
             self.assertRaises(psycopg2.ProgrammingError,
                               cursor0.execute,
