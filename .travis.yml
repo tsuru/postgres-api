@@ -7,4 +7,4 @@ before_install:
 script:
   - TEST_PG_DATABASE=ptest TEST_PG_USER=ptest TEST_PG_PASSWORD=ptest nosetests
 addons:
-    postgresql: "9.1"
+    postgresql: "9.2"
