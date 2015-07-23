@@ -26,6 +26,9 @@ class UnbindTestCase(_base.TestCase):
             manager = managers.SharedManager()
             instance = manager.create_instance('databasenotexist')
             instance.drop_user('127.0.0.1')
+        with db.transaction() as cursor:
+            cursor.execute("SELECT * FROM pg_roles WHERE rolname = 'databaseno90ae84'")
+            self.assertEqual(cursor.fetchall(), [])
 
     def test_not_found(self):
         with self.app.app_context():

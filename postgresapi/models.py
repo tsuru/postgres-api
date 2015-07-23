@@ -7,6 +7,7 @@ from flask import current_app as app
 
 from .database import Database
 
+
 class InvalidInstanceName(Exception):
     def __init__(self, name):
         self.args = ["%s is a invalid name."]
@@ -97,9 +98,20 @@ class ClusterManager(object):
             cursor.execute(ownsql % context)
 
     def drop_database(self, name):
+        group = generate_group(name)
+
         with self.db().autocommit() as cursor:
-            group = generate_group(name)
             cursor.execute("DROP DATABASE %s" % name)
+
+            # Drop role members first
+            cursor.execute("SELECT rolname FROM pg_auth_members pam "
+                           "RIGHT JOIN pg_roles pg on pg.oid = pam.member "
+                           "WHERE pam.member=pg.oid AND pam.roleid = "
+                           "(SELECT oid FROM pg_roles WHERE rolname = '%s');" % group)
+            for role_member in list(sum(cursor.fetchall(), ())):
+                cursor.execute("DROP ROLE %s" % role_member)
+
+            # Drop parent role
             cursor.execute("DROP ROLE %s" % group)
 
     def create_user(self, database, host):
