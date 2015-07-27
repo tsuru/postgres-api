@@ -2,7 +2,7 @@
 
 import psycopg2
 
-from postgresapi import models, managers, storage
+from postgresapi import managers, storage
 from . import _base
 
 
