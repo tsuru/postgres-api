@@ -120,7 +120,7 @@ class ClusterManager(object):
             password = generate_password(database, host)
             group = generate_group(database)
 
-            # Create the user
+            # Create the user and inherit privileges from the group role
             sql = "CREATE ROLE %s WITH LOGIN PASSWORD %%s IN ROLE %s"
             cursor.execute(sql % (username, group), (password, ))
 
@@ -136,7 +136,13 @@ class ClusterManager(object):
             username = generate_user(database, host)
             group = generate_group(database)
 
-            # Remove default privileges of role
+            # Reassign objects back to the group role
+            # This is needed to be able to drop an app user role after
+            # the app has created some objects in the database (e.g. tables)
+            sql = "REASSIGN OWNED BY %s TO %s"
+            cursor.execute(sql % (username, group))
+
+            # Remove default privileges from the role
             sql = "ALTER DEFAULT PRIVILEGES FOR ROLE %s REVOKE ALL PRIVILEGES ON %s FROM %s"
             for object in ['TABLES', 'SEQUENCES', 'FUNCTIONS']:
                 cursor.execute(sql % (username, object, group))
