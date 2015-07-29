@@ -1,5 +1,6 @@
 Flask>=0.10.1
 Flask-Script>=2.0.5
+Flask-BasicAuth==0.2.0
 psycopg2>=2.5.2
 gunicorn>=18.0
 docker-py==0.3.0

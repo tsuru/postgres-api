@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify
+from flask.ext.basicauth import BasicAuth
 
 from .database import AppDatabase
 from .storage import InstanceStorage, InstanceNotFound
@@ -9,6 +10,9 @@ import plans
 
 app = Flask('postgresapi')
 app.config.from_pyfile('application.cfg')
+basic_auth = BasicAuth(app)
+app.config['BASIC_AUTH_FORCE'] = True
+
 AppDatabase(app)
 
 @app.errorhandler(500)

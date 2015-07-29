@@ -83,6 +83,11 @@ $ tsuru env-set -a postgresapi POSTGRESAPI_PORT=5432
 
 # salt used to hash the username/password
 $ tsuru env-set -a postgresapi POSTGRESAPI_SALT=******
+
+# Tsuru API access username & password
+$ tsuru env-set -a postgresapi POSTGRESAPI_BROKER_USERNAME=admin
+$ tsuru env-set -a postgresapi POSTGRESAPI_BROKER_PASSWORD=******
+
 ```
 
 We are only support shared mode currently. Export these variables to specify the shared cluster:
