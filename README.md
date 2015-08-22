@@ -111,7 +111,7 @@ $ git remote add tsuru git@tsuru.example.com:postgresapi.git
 $ git push tsuru master
 
 # The database is ready. Upgrade it!
-$ tsuru run --app postgresapi -- python manage.py upgrade_db
+$ tsuru app-run --app postgresapi -- python manage.py upgrade_db
 ```
 
 Configure the service template and point it to your application:
