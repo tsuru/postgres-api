@@ -137,7 +137,9 @@ class DedicatedManager(BaseManager):
         self.storage.store(instance)
 
         if not self.is_up(instance, 30):
-            raise DockerContainerError('Instance not up after %d tries with (%s/%s)' % (30, admin_user, admin_password))
+            raise DockerContainerError(
+                'Instance not up after %d tries with (%s/%s)' %
+                (30, admin_user, admin_password))
 
         instance.cluster_manager.create_database(name)
         self.storage.store(instance)

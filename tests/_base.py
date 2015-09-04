@@ -7,7 +7,8 @@ import sys
 import unittest
 import psycopg2
 
-from postgresapi import app, manage, database
+from postgresapi import app, manage
+from postgresapi.database import Database
 
 
 class TestCase(unittest.TestCase):
@@ -61,10 +62,11 @@ class TestCase(unittest.TestCase):
             database=self.database, user=self.user,
             password=self.password, host=self.host, port=self.port)
 
-    def create_db(self, dbname=None):
-        return database.Database(
-            dbname or self.database, self.user,
-            self.password, self.host, self.port)
+    def create_db(self, dbname=None, user=None,
+                  password=None, host=None, port=None):
+        return Database(
+            dbname or self.database, user or self.user,
+            password or self.password, host or self.host, port or self.port)
 
     def _drop_test_db(self):
         db = self.create_db()
@@ -74,7 +76,15 @@ class TestCase(unittest.TestCase):
             except:
                 pass
             try:
+                cursor.execute('DROP DATABASE database_not_existdf7d5703c2')
+            except:
+                pass
+            try:
                 cursor.execute('DROP ROLE databaseno_group')
+            except:
+                pass
+            try:
+                cursor.execute('DROP ROLE database_n_group')
             except:
                 pass
 
@@ -83,5 +93,9 @@ class TestCase(unittest.TestCase):
         with db.autocommit() as cursor:
             try:
                 cursor.execute('DROP USER databaseno90ae84')
+            except:
+                pass
+            try:
+                cursor.execute('DROP USER database_nc5ade4')
             except:
                 pass

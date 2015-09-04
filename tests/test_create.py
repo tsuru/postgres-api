@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from postgresapi import models, managers
+from postgresapi import managers
 from . import _base
 
 

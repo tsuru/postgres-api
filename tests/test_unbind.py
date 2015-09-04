@@ -2,7 +2,7 @@
 
 import psycopg2
 
-from postgresapi import managers, database
+from postgresapi import managers
 from . import _base
 
 
@@ -25,7 +25,9 @@ class UnbindTestCase(_base.TestCase):
         # Connection to the database using app's user credentials
         self.database = 'databasenotexist'
         self.user = 'databaseno90ae84'
-        user_db = self.create_db()
+        user_db = self.create_db(
+            dbname='databasenotexist', user='databaseno90ae84',
+            password='59e325e93f6a8aa81e6bfb270c819ccfaaf1e30a')
 
         # Connection to the same db instance but logging in as main user
         # This will be used to check the table we create is still there
@@ -50,17 +52,19 @@ class UnbindTestCase(_base.TestCase):
                                'article_name varchar(20) NOT NULL, '
                                'article_desc text NOT NULL, '
                                'date_added timestamp default NULL)')
-                cursor.execute('INSERT INTO article('
-                               'article_id, article_name, article_desc, date_added) '
-                               'VALUES(1, \'hello\', \'world world world\', NOW())')
+                cursor.execute('INSERT INTO article(article_id, article_name, '
+                               'article_desc, date_added) VALUES '
+                               "(1, 'hello', 'world world world', NOW())")
 
             instance.drop_user('127.0.0.1')
 
         with group_db.transaction() as cursor:
             # The role created after binding the app should be gone
-            cursor.execute("SELECT * FROM pg_roles WHERE rolname = 'databaseno90ae84'")
+            cursor.execute(
+                "SELECT * FROM pg_roles WHERE rolname = 'databaseno90ae84'")
             self.assertEqual(cursor.fetchall(), [])
-            # The table created by the app should be still here containing all data
+            # The table created by the app should be still here
+            # containing all data
             cursor.execute("SELECT * FROM article")
             self.assertEqual(len(cursor.fetchall()), 1)
 

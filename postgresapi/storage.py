@@ -2,9 +2,11 @@
 from flask import current_app as app
 from .models import Instance
 
+
 class InstanceNotFound(Exception):
     def __init__(self, name):
         self.args = ["Instance %s is not found." % name]
+
 
 class InstanceAlreadyExists(Exception):
     def __init__(self, name):
@@ -17,8 +19,10 @@ class InstanceStorage(object):
 
     def instance_by_name(self, name):
         with app.db.transaction() as cursor:
-            cursor.execute('SELECT name, plan, state, host, port, container_id, admin_user, admin_password'
-                           ' FROM %s WHERE name=%%s' % self.table_name, (name, ))
+            cursor.execute(
+                'SELECT name, plan, state, host, port, '
+                'container_id, admin_user, admin_password '
+                'FROM %s WHERE name=%%s' % self.table_name, (name, ))
 
             try:
                 return self.instance_from_row(cursor.fetchone())
@@ -28,8 +32,10 @@ class InstanceStorage(object):
 
     def find_instances_by_host(self, host):
         with app.db.transaction() as cursor:
-            cursor.execute('SELECT name, plan, state, host, port, container_id, admin_user, admin_password '
-                           'FROM %s WHERE host=%%s' % self.table_name, (host, ))
+            cursor.execute(
+                'SELECT name, plan, state, host, port, '
+                'container_id, admin_user, admin_password '
+                'FROM %s WHERE host=%%s' % self.table_name, (host, ))
 
             instances = []
             for record in cursor:
@@ -51,26 +57,32 @@ class InstanceStorage(object):
 
     def instance_exists(self, name):
         with app.db.transaction() as cursor:
-            cursor.execute('SELECT 1 FROM %s WHERE name=%%s' % self.table_name, (name, ))
+            cursor.execute(
+                'SELECT 1 FROM %s WHERE name=%%s' % self.table_name, (name, ))
             return True if cursor.fetchone() else False
 
     def store(self, instance):
         with app.db.transaction() as cursor:
             if self.instance_exists(instance.name):
                 cursor.execute(
-                    'UPDATE %s SET plan = %%s, state = %%s, host = %%s, port = %%s, container_id = %%s,'
-                    ' admin_user = %%s, admin_password = %%s WHERE name = %%s' % self.table_name,
-                    (instance.plan, instance.state, instance.host, instance.port, instance.container_id,
+                    'UPDATE %s SET plan = %%s, state = %%s, host = %%s, '
+                    'port = %%s, container_id = %%s, admin_user = %%s, '
+                    'admin_password = %%s WHERE name = %%s' % self.table_name,
+                    (instance.plan, instance.state, instance.host,
+                     instance.port, instance.container_id,
                      instance.username, instance.password, instance.name)
                 )
             else:
                 cursor.execute(
-                    'INSERT INTO %s (name, plan, state, host, port, container_id, admin_user, admin_password) '
-                    'VALUES (%%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s)' % self.table_name,
-                    (instance.name, instance.plan, instance.state, instance.host, instance.port, instance.container_id,
+                    'INSERT INTO %s (name, plan, state, host, port, '
+                    'container_id, admin_user, admin_password) VALUES(%%s, '
+                    '%%s, %%s, %%s, %%s, %%s, %%s, %%s)' % self.table_name,
+                    (instance.name, instance.plan, instance.state,
+                     instance.host, instance.port, instance.container_id,
                      instance.username, instance.password)
                 )
 
     def delete_by_name(self, name):
         with app.db.transaction() as cursor:
-            cursor.execute('DELETE FROM %s WHERE name=%%s' % self.table_name, (name, ))
+            cursor.execute(
+                'DELETE FROM %s WHERE name=%%s' % self.table_name, (name, ))

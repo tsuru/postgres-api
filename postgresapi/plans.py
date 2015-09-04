@@ -9,9 +9,11 @@ plans = [
     {'name': 'dedicated', 'description': 'Your own PostgreSQL instance'}
 ]
 
+
 class PlanDoNotExists(Exception):
     def __init__(self, name):
         self.args = ["Plan %s does not exist." % name]
+
 
 def list_active():
     plans_environ = os.environ.get("POSTGRES_API_PLANS", "[]")
@@ -23,6 +25,7 @@ def list_active():
             active_plans.append(plan)
 
     return active_plans
+
 
 def get_manager_by_plan(plan):
     """Get the manager for the given plan

@@ -29,18 +29,20 @@ class DeleteTestCase(_base.TestCase):
                            'IN GROUP databaseno_group')
         with self.app.app_context():
             manager = managers.SharedManager()
-            manager.delete_instance(models.Instance(name='databasenotexist', plan='shared'))
+            manager.delete_instance(
+                models.Instance(name='databasenotexist', plan='shared'))
 
         db = self.create_db()
         with db.transaction() as cursor:
             cursor.execute('SELECT * FROM instance')
             self.assertEqual(cursor.fetchall(), [])
-            cursor.execute("SELECT * FROM pg_roles WHERE rolname ='databaseno90ae84'")
+            cursor.execute(
+                "SELECT * FROM pg_roles WHERE rolname ='databaseno90ae84'")
             self.assertEqual(cursor.fetchall(), [])
 
     def test_not_exist(self):
         with self.app.app_context():
             manager = managers.SharedManager()
-            self.assertRaises(storage.InstanceNotFound,
-                              manager.delete_instance,
-                              models.Instance(name='databasenotexist', plan='shared'))
+            self.assertRaises(
+                storage.InstanceNotFound, manager.delete_instance,
+                models.Instance(name='databasenotexist', plan='shared'))

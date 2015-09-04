@@ -15,6 +15,7 @@ app.config['BASIC_AUTH_FORCE'] = True
 
 AppDatabase(app)
 
+
 @app.errorhandler(500)
 def internal_server_error(e):
     if e.args:
@@ -60,6 +61,7 @@ def create_instance():
     plans.get_manager_by_plan(plan).create_instance(canonicalize_db_name(name))
 
     return '', 201
+
 
 @app.route("/resources/<name>/bind-app", methods=["POST"])
 def bind_app(name):
@@ -122,6 +124,7 @@ def bind_unit(name):
     """Bind an app unit to the database
 
     """
+    name = canonicalize_db_name(name)
     storage = InstanceStorage()
     if storage.instance_exists(name):
         return jsonify({}), 201
@@ -134,6 +137,7 @@ def unbind_unit(name):
     """Unbind an app unit to the database
 
     """
+    name = canonicalize_db_name(name)
     storage = InstanceStorage()
     if storage.instance_exists(name):
         return jsonify({}), 200
@@ -174,6 +178,7 @@ def unbind_app(name):
 
     instance.drop_user(hostname)
     return '', 200
+
 
 @app.route("/resources/<name>", methods=["DELETE"])
 def destroy_instance(name):

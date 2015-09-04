@@ -6,7 +6,6 @@ from contextlib import contextmanager
 import psycopg2
 from psycopg2.extensions import (ISOLATION_LEVEL_AUTOCOMMIT,
                                  ISOLATION_LEVEL_READ_COMMITTED)
-from flask.helpers import locked_cached_property
 
 _interrupt = (KeyboardInterrupt, SystemExit)
 
@@ -24,10 +23,10 @@ class Database(object):
     def connection(self):
         if not self.conn or self.conn.closed:
             self.conn = psycopg2.connect(database=self.database,
-                                    user=self.user,
-                                    password=self.password,
-                                    host=self.host,
-                                    port=self.port)
+                                         user=self.user,
+                                         password=self.password,
+                                         host=self.host,
+                                         port=self.port)
         return self.conn
 
     @contextmanager
@@ -69,7 +68,7 @@ class Database(object):
 
         except _interrupt:
             raise
-        except Exception as e:
+        except Exception:
             return False
 
     def export(self):

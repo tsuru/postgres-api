@@ -54,4 +54,5 @@ docs/_build/
 
 *.swp
 *.swo
-
+*.orig
+*.rej

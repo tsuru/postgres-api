@@ -44,8 +44,10 @@ def generate_group(string):
 
 
 def canonicalize_db_name(name):
-    if re.search(r"[\W\s]", name) is not None:
+    if re.search(r"[A-Z\W\s]", name) is not None:
         suffix = hashlib.sha1(name).hexdigest()[:10]
+        name = name[:1].lower() + name[1:]
+        name = re.sub(r"[A-Z]", lambda m: "_" + m.group(0).lower(), name)
         name = re.sub(r"[\W\s]", "_", name) + suffix
     return name
 
@@ -107,7 +109,8 @@ class ClusterManager(object):
             cursor.execute("SELECT rolname FROM pg_auth_members pam "
                            "RIGHT JOIN pg_roles pg on pg.oid = pam.member "
                            "WHERE pam.member=pg.oid AND pam.roleid = "
-                           "(SELECT oid FROM pg_roles WHERE rolname = '%s');" % group)
+                           "(SELECT oid FROM pg_roles WHERE rolname = %s);",
+                           (group,))
             for role_member in list(sum(cursor.fetchall(), ())):
                 cursor.execute("DROP ROLE %s" % role_member)
 
@@ -125,7 +128,8 @@ class ClusterManager(object):
             cursor.execute(sql % (username, group), (password, ))
 
             # Alter default privileges will grant objects on group
-            sql = "ALTER DEFAULT PRIVILEGES FOR ROLE %s GRANT ALL PRIVILEGES ON %s TO %s"
+            sql = ("ALTER DEFAULT PRIVILEGES FOR ROLE %s "
+                   "GRANT ALL PRIVILEGES ON %s TO %s")
             for object in ['TABLES', 'SEQUENCES', 'FUNCTIONS']:
                 cursor.execute(sql % (username, object, group))
 
@@ -143,7 +147,8 @@ class ClusterManager(object):
             cursor.execute(sql % (username, group))
 
             # Remove default privileges from the role
-            sql = "ALTER DEFAULT PRIVILEGES FOR ROLE %s REVOKE ALL PRIVILEGES ON %s FROM %s"
+            sql = ("ALTER DEFAULT PRIVILEGES FOR ROLE %s "
+                   "REVOKE ALL PRIVILEGES ON %s FROM %s")
             for object in ['TABLES', 'SEQUENCES', 'FUNCTIONS']:
                 cursor.execute(sql % (username, object, group))
 
@@ -154,7 +159,8 @@ class ClusterManager(object):
 
 
 class Instance(object):
-    def __init__(self, name, plan, state='pending', host=None, port=None, container_id=None, username=None,
+    def __init__(self, name, plan, state='pending', host=None,
+                 port=None, container_id=None, username=None,
                  password=None):
         self.name = name
         self.plan = plan
@@ -194,15 +200,19 @@ class Instance(object):
             public_host = config['SHARED_PUBLIC_HOST']
         elif self.plan == 'dedicated':
             if self.host is None or self.port is None:
-                raise InvalidInstanceConfiguration(field=('host' if self.host is None else 'port'))
+                raise InvalidInstanceConfiguration(
+                    field=('host' if self.host is None else 'port'))
             elif self.username is None or self.password is None:
-                raise InvalidInstanceConfiguration(field='username or password')
+                raise InvalidInstanceConfiguration(
+                    field='username or password')
 
             host = public_host = self.host
             port = self.port
             user = self.username
             password = self.password
         else:
-            raise NotImplementedError('Currently only shared and dedicated host are supported')
+            raise NotImplementedError(
+                'Currently only shared and dedicated host are supported')
 
-        return ClusterManager(host=host, port=port, user=user, password=password, public_host=public_host)
+        return ClusterManager(host=host, port=port, user=user,
+                              password=password, public_host=public_host)

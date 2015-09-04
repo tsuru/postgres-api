@@ -2,7 +2,7 @@
 
 import psycopg2
 from postgresapi import plans
-from postgresapi.models import canonicalize_db_name, Instance
+from postgresapi.models import canonicalize_db_name
 
 from . import _base
 
@@ -119,6 +119,15 @@ class DatabaseTestCase(_base.TestCase):
             self.assertEqual(
                 cursor1.fetchall(),
                 [(1,), (2,), (3,), (4,), (5,)])
+
+    def test_canonicalize_db_name(self):
+        with self.app.app_context():
+            self.assertEqual(
+                canonicalize_db_name('testdb'), 'testdb')
+            self.assertEqual(
+                canonicalize_db_name('TestDB'), 'test_d_b85190d6a9e')
+            self.assertEqual(
+                canonicalize_db_name('Testdb'), 'testdb3c5fdfd3be')
 
     def test_instance(self):
         with self.app.app_context():
