@@ -1,1 +1,1 @@
-api: gunicorn postgresapi:app --log-file=- -b 0.0.0.0:8888
+web: gunicorn postgresapi:app --log-file=- -b 0.0.0.0:8888
