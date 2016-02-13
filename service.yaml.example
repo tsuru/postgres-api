@@ -1,5 +1,6 @@
 id: postgresapi
 username: admin
 password: password
+team: admin
 endpoint:
   production: postgresapi.example.com
