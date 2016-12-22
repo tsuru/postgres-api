@@ -24,12 +24,12 @@ After install PostgreSQL, you need to create a user and a database for `postgres
 Here is an example:
 
 ```bash
-$ sudo -u postgres createuser postgresapi -P
+$ sudo -u postgres createuser postgresapi -r -P
 # "Enter password for new role"
 # "Enter it again"
 # "Shall the new role be a superuser?" No
 # "Shall the new role be allowed to create databases?", No
-# "Shall the new role be allowed to create more new roles?", No
+# "Shall the new role be allowed to create more new roles?", Yes
 
 $ sudo -u postgres createdb postgresapi -O postgresapi
 ```
@@ -39,7 +39,7 @@ $ sudo -u postgres createdb postgresapi -O postgresapi
 You can use another host to provide PostgreSQL to other applications.
 
 ```bash
-$ sudo -u postgres createuser postgresadmin -P
+$ sudo -u postgres createuser postgresadmin -s -P
 # "Enter password for new role"
 # "Enter it again"
 # "Shall the new role be a superuser?" Yes
